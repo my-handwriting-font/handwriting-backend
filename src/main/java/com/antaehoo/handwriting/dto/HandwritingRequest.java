@@ -13,11 +13,14 @@ import java.util.List;
 @AllArgsConstructor
 public class HandwritingRequest {
 
-    // 플러터에서 보내는 글자 이름 (예: "가")
+    // 플러터에서 보내는 글자 이름 (예: "ㄱ")
     private String charName;
 
-    // 플러터에서 보내는 전체 획 데이터 리스트
+    // 플러터에서 보내는 전체 획 데이터 리스트 (캔버스 원본 좌표)
     private List<StrokeData> strokes;
+
+    // 로그인한 사용자 ID. 없으면(테스트 화면 등) 1번 사용자로 저장한다.
+    private Long userId;
 
 }
 
