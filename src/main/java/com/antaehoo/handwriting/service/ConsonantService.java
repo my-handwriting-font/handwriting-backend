@@ -1,6 +1,5 @@
 package com.antaehoo.handwriting.service;
 
-import com.antaehoo.handwriting.dto.FastApiPredictResponse;
 import com.antaehoo.handwriting.dto.HandwritingRequest;
 import com.antaehoo.handwriting.dto.StrokeData;
 import com.antaehoo.handwriting.repository.Consonant;
@@ -8,14 +7,10 @@ import com.antaehoo.handwriting.repository.ConsonantRepository;
 import com.antaehoo.handwriting.repository.User;
 import com.antaehoo.handwriting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -36,19 +31,31 @@ public class ConsonantService {
         List<Consonant> list = consonantRepository.findAll();
         return list.isEmpty() ? null : list.get(list.size() - 1);
     }
- 
+
+    /**
+     * 검증을 통과한 자음을 저장한다.
+     * 같은 사용자의 같은 글자가 이미 있으면 새로 추가하지 않고 덮어쓴다 (중복 방지).
+     * 정규화 좌표(vectorMap)와 함께 원본 좌표(rawVectorMap)도 저장한다.
+     */
     @Transactional
     public void saveNormalization(HandwritingRequest request) {
-        Optional<User> byId = userRepository.findById(1L); //테스트용, 나중에 리펙토링
-        User user = byId.get();
+        // 로그인한 사용자. userId가 없는 요청(테스트 화면 등)은 1번 사용자로 저장한다.
+        Long userId = request.getUserId() != null ? request.getUserId() : 1L;
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
+        char charName = request.getCharName().charAt(0);
 
         List<StrokeData> normalization = normalizationService.normalization(request);
 
-        Consonant consonant = new Consonant();
+        Consonant consonant = consonantRepository
+                .findFirstByUser_UserIdAndCharNameOrderByConsonantIdDesc(user.getUserId(), charName)
+                .orElseGet(Consonant::new);
+
         consonant.setUser(user);
-        consonant.setCharName(request.getCharName().charAt(0));
+        consonant.setCharName(charName);
         consonant.setVectorMap(normalization);
-        consonant.setCharCount(1);
+        consonant.setRawVectorMap(request.getStrokes());
+        consonant.setCharCount(consonant.getCharCount() + 1); // 이 글자를 저장한 횟수
 
         registerConsonant(consonant);
     }

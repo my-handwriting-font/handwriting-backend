@@ -33,8 +33,13 @@ public class Vowel {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "vector_map", columnDefinition = "json")
-    private List<StrokeData> vectorMap; // DB의 JSON이 자동으로 이 List 객체로 변환됩니다.
+    private List<StrokeData> vectorMap; // 정규화 좌표 (검증용)
 
     @Column(name = "char_count", nullable = true, unique = false)
     private int charCount;
+
+    // 캔버스에 쓴 원본 좌표 (정규화 전). 폰트 합성에 원본 가로세로 비율이 필요해서 따로 저장한다.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "raw_vector_map", columnDefinition = "json")
+    private List<StrokeData> rawVectorMap;
 }
