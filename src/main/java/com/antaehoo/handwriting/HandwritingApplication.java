@@ -1,5 +1,6 @@
 package com.antaehoo.handwriting;
 
+import com.antaehoo.handwriting.repository.Consonant;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,6 +9,9 @@ public class HandwritingApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(HandwritingApplication.class, args);
+
+		Consonant consonant = new Consonant();
+
 	}
 
 }
